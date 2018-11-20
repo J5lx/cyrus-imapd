@@ -3573,7 +3573,9 @@ static int rename_cb(const char *mboxname __attribute__((unused)),
 }
 
 EXPORTED int annotate_rename_mailbox(struct mailbox *oldmailbox,
-                                     struct mailbox *newmailbox __attribute__((unused)))
+                                     struct mailbox *newmailbox __attribute__((unused)),
+                                     int copy __attribute__((unused)))
+
 {
     /* rename one mailbox */
     annotate_db_t *d = NULL;
