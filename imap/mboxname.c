@@ -1966,8 +1966,24 @@ EXPORTED char *mboxname_conf_getpath(const mbname_t *mbname, const char *suffix)
     char *fname = NULL;
     char c[2], d[2];
 
-    if (mbname->domain) {
-        if (mbname->localpart) {
+    if (mbname->localpart) {
+        char *mboxname = mboxname_user_mbox(mbname_userid(mbname), NULL);
+        mbentry_t *mbentry = NULL;
+
+        int r = mboxlist_lookup_allow_all(mboxname, &mbentry, NULL);
+        free(mboxname);
+
+        if (!r) {
+            char path[MAX_MAILBOX_PATH+1];
+
+            mboxname_id_hash(path, MAX_MAILBOX_PATH, "", mbentry->uniqueid);
+
+            fname = strconcat(config_dir,
+                              FNAME_USERDIR,
+                              path, ".", suffix,
+                              (char *)NULL);
+        }
+        else if (mbname->domain) {
             fname = strconcat(config_dir,
                               FNAME_DOMAINDIR,
                               dir_hash_b(mbname->domain, config_fulldirhash, d),
@@ -1979,26 +1995,26 @@ EXPORTED char *mboxname_conf_getpath(const mbname_t *mbname, const char *suffix)
         }
         else {
             fname = strconcat(config_dir,
-                              FNAME_DOMAINDIR,
-                              dir_hash_b(mbname->domain, config_fulldirhash, d),
-                              "/", mbname->domain,
-                              "/", FNAME_SHAREDPREFIX, ".", suffix,
+                              FNAME_USERDIR,
+                              dir_hash_b(mbname->localpart, config_fulldirhash, c),
+                              "/", mbname->localpart, ".", suffix,
                               (char *)NULL);
         }
+        mboxlist_entry_free(&mbentry);
+    }
+    else if (mbname->domain) {
+        fname = strconcat(config_dir,
+                          FNAME_DOMAINDIR,
+                          dir_hash_b(mbname->domain, config_fulldirhash, d),
+                          "/", mbname->domain,
+                          "/", FNAME_SHAREDPREFIX, ".", suffix,
+                          (char *)NULL);
+
     }
     else {
-        if (mbname->localpart) {
-            fname = strconcat(config_dir,
-                              FNAME_USERDIR,
-                              dir_hash_b(mbname->localpart, config_fulldirhash, c),
-                              "/", mbname->localpart, ".", suffix,
-                              (char *)NULL);
-        }
-        else {
-            fname = strconcat(config_dir,
-                              "/", FNAME_SHAREDPREFIX, ".", suffix,
-                              (char *)NULL);
-        }
+        fname = strconcat(config_dir,
+                          "/", FNAME_SHAREDPREFIX, ".", suffix,
+                          (char *)NULL);
     }
 
     return fname;
