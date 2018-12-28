@@ -563,7 +563,7 @@ static json_t *_mbox_get(jmap_req_t *req,
 
         if (_wantprop(props, "totalThreads") || _wantprop(props, "unreadThreads")) {
             if ((r = conversation_getstatus(req->cstate,
-                            mbname_intname(mbname), &sdata.xconv))) {
+                                            mbentry->uniqueid, &sdata.xconv))) {
                 syslog(LOG_ERR, "conversation_getstatus(%s): %s",
                         mbname_intname(mbname), error_message(r));
                 goto done;
